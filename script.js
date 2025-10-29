@@ -19,6 +19,7 @@ let operand2 = "";
 let operator = "";
 let firstOperatorSelected = false;
 let divideByZeroErrorMessage = "ERROR: Divide by zero";
+let resultOfEarlierOperation = false;
 
 function operate(operand1, operand2, operator) {
   let result;
@@ -31,6 +32,12 @@ function operate(operand1, operand2, operator) {
       break;
     case "*":
       result = multiply(operand1, operand2);
+
+      // this is a weird edge case where we can get -0 and +0
+      // which should just functionally be 0
+      if (result === 0) {
+        result = 0;
+      }
       break;
     case "/":
       if (operand2 === "0") {
@@ -64,6 +71,12 @@ digitButtons.forEach((digitButton) => {
     }
 
     let buttonContent = event.target.textContent;
+    if (resultOfEarlierOperation && !operator) {
+      operand1 = buttonContent;
+      displayDiv.textContent = buttonContent;
+      resultOfEarlierOperation = false;
+      return;
+    }
     displayDiv.textContent += buttonContent;
 
     if (!firstOperatorSelected) {
@@ -76,9 +89,10 @@ digitButtons.forEach((digitButton) => {
 
 operatorButtons.forEach((operatorButton) => {
   operatorButton.addEventListener("click", (event) => {
-    if (!operand1) {
+    if (operand1 === "") {
       return;
     }
+    resultOfEarlierOperation = false;
 
     let buttonContent = event.target.textContent;
     // need separate case for '=' since operator variable would be incorrectly overridden
@@ -94,17 +108,20 @@ operatorButtons.forEach((operatorButton) => {
       operand2 = "";
       operator = "";
       firstOperatorSelected = false;
+      resultOfEarlierOperation = true;
       return;
     }
     else {
-      if (operand1 && operand2 && operator) {
+      if ((operand1 || operand1 === 0) && (operand2 || operand2 === 0) && operator) {
         operand1 = operate(operand1, operand2, operator);
         displayDiv.textContent = operand1;
         if (operand1 === divideByZeroErrorMessage) {
           operand1 = "";
         }
         operand2 = "";
+        resultOfEarlierOperation = true;
       } else if (operator && !operand2) {
+        // TODO: display the correct operator if the user presses multiple in a row
         return;
       }
 
