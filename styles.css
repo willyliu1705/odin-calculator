@@ -16,12 +16,6 @@ button {
   padding: 0;
 }
 
-#container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
 #calculator {
   display: flex;
   flex-direction: column;
