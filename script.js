@@ -17,8 +17,8 @@ function divide(a, b) {
 let operand1 = "";
 let operand2 = "";
 let operator = "";
-let operandOneFilled = false;
-let operatorSelected = false;
+let firstOperatorSelected = false;
+let secondOperatorSelected = false;
 
 function operate(operand1, operand2, operator) {
   let result;
@@ -50,9 +50,9 @@ digitButtons.forEach((digitButton) => {
     let buttonContent = event.target.textContent;
     displayDiv.textContent += buttonContent;
 
-    if (!operandOneFilled) {
+    if (!firstOperatorSelected) {
       operand1 += Number(buttonContent);
-    } else if (operatorSelected) {
+    } else if (firstOperatorSelected && !secondOperatorSelected) {
       operand2 += Number(buttonContent);
     }
   })
@@ -60,32 +60,52 @@ digitButtons.forEach((digitButton) => {
 
 operatorButtons.forEach((operatorButton) => {
   operatorButton.addEventListener("click", (event) => {
-    operandOneFilled = true;
-    operatorSelected = operatorSelected ? false : true;
     let buttonContent = event.target.textContent;
-
+    // need separate case for '=' since operator variable would be incorrectly overridden
     if (buttonContent === "=") {
+      if (!(operand1 && operand2 && operator)) {
+        return;
+      }
       operand1 = operate(operand1, operand2, operator);
       displayDiv.textContent = operand1;
       operand2 = "";
-      operatorSelected = false;
+      operator = "";
+      firstOperatorSelected = false;
+      secondOperatorSelected = false;
       return;
     }
     else {
+      if (firstOperatorSelected) {
+        /* 
+        TODO: remove secondOperatorSelected and just check if 
+        operand1 && operand2 && operator are all filled in.
+        This will make writing the logic for consecutive operator clicks easier.
+        */
+        secondOperatorSelected = true;
+      }
+      firstOperatorSelected = true;
       operator = buttonContent;
     }
 
     switch (operator) {
-      case "AC":
+      case "Clear":
         displayDiv.textContent = "";
         operand1 = "";
         operand2 = "";
         operator = "";
-        operandOneFilled = false;
-        operatorSelected = false;
+        firstOperatorSelected = false;
+        secondOperatorSelected = false;
         break;
       default:
-        displayDiv.textContent += " " + operator + " "
+        if (secondOperatorSelected) {
+          operand1 = operate(operand1, operand2, operator);
+          displayDiv.textContent = operand1 + " " + operator + " ";
+          operand2 = "";
+          firstOperatorSelected = true;
+          secondOperatorSelected = false;
+        } else {
+          displayDiv.textContent += " " + operator + " "
+        }
         break;
     }
   })
