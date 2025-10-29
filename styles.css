@@ -47,9 +47,9 @@ button {
 }
 
 .equals {
-  width: 150;
+  width: 380px;
   height: 80px;
   display: flex;
-  justify-content: end;
+  justify-content: space-between;
   gap: 20px;
 }
