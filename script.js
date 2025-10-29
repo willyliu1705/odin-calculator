@@ -18,7 +18,7 @@ let operand1 = "";
 let operand2 = "";
 let operator = "";
 let firstOperatorSelected = false;
-let secondOperatorSelected = false;
+let divideByZeroErrorMessage = "ERROR: Divide by zero";
 
 function operate(operand1, operand2, operator) {
   let result;
@@ -33,33 +33,53 @@ function operate(operand1, operand2, operator) {
       result = multiply(operand1, operand2);
       break;
     case "/":
+      if (operand2 === "0") {
+        return divideByZeroErrorMessage;
+      }
       result = divide(operand1, operand2);
       break;
     default:
       result = NaN;
   }
-  return result;
+  return Math.round(result * 1000) / 1000;
 }
 
 let displayDiv = document.querySelector("#display div");
 let digitButtons = document.querySelectorAll(".digits");
 let operatorButtons = document.querySelectorAll(".operator");
+let clearButton = document.querySelector(".clear-button");
+
+clearButton.addEventListener("click", (event) => {
+  displayDiv.textContent = "";
+  operand1 = "";
+  operand2 = "";
+  operator = "";
+  firstOperatorSelected = false;
+})
 
 digitButtons.forEach((digitButton) => {
   digitButton.addEventListener("click", (event) => {
+    if (displayDiv.textContent === divideByZeroErrorMessage) {
+      return;
+    }
+
     let buttonContent = event.target.textContent;
     displayDiv.textContent += buttonContent;
 
     if (!firstOperatorSelected) {
-      operand1 += Number(buttonContent);
-    } else if (firstOperatorSelected && !secondOperatorSelected) {
-      operand2 += Number(buttonContent);
+      operand1 += buttonContent;
+    } else if (firstOperatorSelected) {
+      operand2 += buttonContent;
     }
   })
 })
 
 operatorButtons.forEach((operatorButton) => {
   operatorButton.addEventListener("click", (event) => {
+    if (!operand1) {
+      return;
+    }
+
     let buttonContent = event.target.textContent;
     // need separate case for '=' since operator variable would be incorrectly overridden
     if (buttonContent === "=") {
@@ -68,46 +88,31 @@ operatorButtons.forEach((operatorButton) => {
       }
       operand1 = operate(operand1, operand2, operator);
       displayDiv.textContent = operand1;
+      if (operand1 === divideByZeroErrorMessage) {
+        operand1 = "";
+      }
       operand2 = "";
       operator = "";
       firstOperatorSelected = false;
-      secondOperatorSelected = false;
       return;
     }
     else {
-      if (firstOperatorSelected) {
-        /* 
-        TODO: remove secondOperatorSelected and just check if 
-        operand1 && operand2 && operator are all filled in.
-        This will make writing the logic for consecutive operator clicks easier.
-        */
-        secondOperatorSelected = true;
+      if (operand1 && operand2 && operator) {
+        operand1 = operate(operand1, operand2, operator);
+        displayDiv.textContent = operand1;
+        if (operand1 === divideByZeroErrorMessage) {
+          operand1 = "";
+        }
+        operand2 = "";
+      } else if (operator && !operand2) {
+        return;
       }
+
       firstOperatorSelected = true;
       operator = buttonContent;
     }
 
-    switch (operator) {
-      case "Clear":
-        displayDiv.textContent = "";
-        operand1 = "";
-        operand2 = "";
-        operator = "";
-        firstOperatorSelected = false;
-        secondOperatorSelected = false;
-        break;
-      default:
-        if (secondOperatorSelected) {
-          operand1 = operate(operand1, operand2, operator);
-          displayDiv.textContent = operand1 + " " + operator + " ";
-          operand2 = "";
-          firstOperatorSelected = true;
-          secondOperatorSelected = false;
-        } else {
-          displayDiv.textContent += " " + operator + " "
-        }
-        break;
-    }
+    displayDiv.textContent += " " + operator + " ";
   })
 })
 
