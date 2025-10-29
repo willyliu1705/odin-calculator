@@ -121,8 +121,19 @@ operatorButtons.forEach((operatorButton) => {
         operand2 = "";
         resultOfEarlierOperation = true;
       } else if (operator && !operand2) {
-        // TODO: display the correct operator if the user presses multiple in a row
-        return;
+        if (operator === buttonContent) {
+          return;
+        } else {
+          firstOperatorSelected = true;
+          operator = buttonContent;
+          // remove previous operator and replace with newly selected one
+          let originalString = displayDiv.textContent;
+          let modifiedArrayOfOriginalString = [];
+          modifiedArrayOfOriginalString.push(originalString.split(" ")[0])
+          modifiedArrayOfOriginalString.push(operator);
+          displayDiv.textContent = modifiedArrayOfOriginalString.join(" ") + " "
+          return;
+        }
       }
 
       firstOperatorSelected = true;
