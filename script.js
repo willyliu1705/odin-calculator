@@ -14,17 +14,17 @@ function divide(a, b) {
   return a / b;
 }
 
-let operand1;
-let operand2;
-let operator;
+let operand1 = "";
+let operand2 = "";
+let operator = "";
 let operandOneFilled = false;
-// TODO: need to also add operandTwFilled so I know when to evaluate the pair of numbers
+let operatorSelected = false;
 
 function operate(operand1, operand2, operator) {
   let result;
   switch (operator) {
     case "+":
-      result = add(operand1, operand2);
+      result = add(Number(operand1), Number(operand2));
       break;
     case "-":
       result = subtract(operand1, operand2);
@@ -51,25 +51,42 @@ digitButtons.forEach((digitButton) => {
     displayDiv.textContent += buttonContent;
 
     if (!operandOneFilled) {
-      operand1 = Number(buttonContent);
-    } else {
-      operand2 = Number(buttonContent);
+      operand1 += Number(buttonContent);
+    } else if (operatorSelected) {
+      operand2 += Number(buttonContent);
     }
   })
 })
 
 operatorButtons.forEach((operatorButton) => {
   operatorButton.addEventListener("click", (event) => {
+    operandOneFilled = true;
+    operatorSelected = operatorSelected ? false : true;
     let buttonContent = event.target.textContent;
-    switch (buttonContent) {
+
+    if (buttonContent === "=") {
+      operand1 = operate(operand1, operand2, operator);
+      displayDiv.textContent = operand1;
+      operand2 = "";
+      operatorSelected = false;
+      return;
+    }
+    else {
+      operator = buttonContent;
+    }
+
+    switch (operator) {
       case "AC":
-        // TODO
-        break;
-      case "=":
-        // TODO
+        displayDiv.textContent = "";
+        operand1 = "";
+        operand2 = "";
+        operator = "";
+        operandOneFilled = false;
+        operatorSelected = false;
         break;
       default:
-        operator = buttonContent;
+        displayDiv.textContent += " " + operator + " "
+        break;
     }
   })
 })
