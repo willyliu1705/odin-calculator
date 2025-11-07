@@ -53,3 +53,9 @@ button {
   justify-content: space-between;
   gap: 20px;
 }
+
+.formatting {
+  pointer-events: none;
+  background-color: white;
+  border: none;
+}
