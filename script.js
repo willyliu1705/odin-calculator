@@ -55,13 +55,39 @@ let displayDiv = document.querySelector("#display div");
 let digitButtons = document.querySelectorAll(".digits");
 let operatorButtons = document.querySelectorAll(".operator");
 let clearButton = document.querySelector(".clear-button");
+let deleteButton = document.querySelector(".delete-button");
 
-clearButton.addEventListener("click", (event) => {
+function resetCalculator() {
   displayDiv.textContent = "";
   operand1 = "";
   operand2 = "";
   operator = "";
   firstOperatorSelected = false;
+  resultOfEarlierOperation = false;
+}
+
+clearButton.addEventListener("click", (event) => {
+  resetCalculator();
+})
+
+deleteButton.addEventListener("click", (event) => {
+  if (resultOfEarlierOperation) {
+    resetCalculator();
+    return;
+  }
+
+  if (operand2 !== "") {
+    operand2 = operand2.substring(0, operand2.length - 1);
+  } else if (operator !== "") {
+    operator = "";
+    firstOperatorSelected = false;
+  } else if (operand1 !== "") {
+    operand1 = operand1.substring(0, operand1.length - 1);
+  } else {
+    displayDiv.textContent = "";
+    return;
+  }
+  displayDiv.textContent = operand1 + " " + operator + " " + operand2;
 })
 
 function checkDecimalInOperand(string) {
