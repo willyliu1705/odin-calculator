@@ -64,6 +64,13 @@ clearButton.addEventListener("click", (event) => {
   firstOperatorSelected = false;
 })
 
+function checkDecimalInOperand(string) {
+  if (string.includes(".")) {
+    return true;
+  }
+  return false;
+}
+
 digitButtons.forEach((digitButton) => {
   digitButton.addEventListener("click", (event) => {
     if (displayDiv.textContent === divideByZeroErrorMessage) {
@@ -75,6 +82,10 @@ digitButtons.forEach((digitButton) => {
       operand1 = buttonContent;
       displayDiv.textContent = buttonContent;
       resultOfEarlierOperation = false;
+      return;
+    } else if (buttonContent === "." && checkDecimalInOperand(String(operand1)) && !firstOperatorSelected) {
+      return;
+    } else if (buttonContent === "." && checkDecimalInOperand(String(operand2)) && firstOperatorSelected) {
       return;
     }
     displayDiv.textContent += buttonContent;
