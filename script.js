@@ -70,7 +70,7 @@ clearButton.addEventListener("click", (event) => {
   resetCalculator();
 })
 
-deleteButton.addEventListener("click", (event) => {
+function processDeleteInput() {
   if (resultOfEarlierOperation) {
     resetCalculator();
     return;
@@ -88,13 +88,43 @@ deleteButton.addEventListener("click", (event) => {
     return;
   }
   displayDiv.textContent = operand1 + " " + operator + " " + operand2;
+}
+
+deleteButton.addEventListener("click", (event) => {
+  processDeleteInput();
 })
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Backspace") {
+    processDeleteInput();
+  }
+});
 
 function checkDecimalInOperand(string) {
   if (string.includes(".")) {
     return true;
   }
   return false;
+}
+
+function processDigitInput(buttonContent) {
+  if (resultOfEarlierOperation && !operator) {
+    operand1 = buttonContent;
+    displayDiv.textContent = buttonContent;
+    resultOfEarlierOperation = false;
+    return;
+  } else if (buttonContent === "." && checkDecimalInOperand(String(operand1)) && !firstOperatorSelected) {
+    return;
+  } else if (buttonContent === "." && checkDecimalInOperand(String(operand2)) && firstOperatorSelected) {
+    return;
+  }
+  displayDiv.textContent += buttonContent;
+
+  if (!firstOperatorSelected) {
+    operand1 += buttonContent;
+  } else if (firstOperatorSelected) {
+    operand2 += buttonContent;
+  }
 }
 
 digitButtons.forEach((digitButton) => {
@@ -104,25 +134,69 @@ digitButtons.forEach((digitButton) => {
     }
 
     let buttonContent = event.target.textContent;
-    if (resultOfEarlierOperation && !operator) {
-      operand1 = buttonContent;
-      displayDiv.textContent = buttonContent;
-      resultOfEarlierOperation = false;
-      return;
-    } else if (buttonContent === "." && checkDecimalInOperand(String(operand1)) && !firstOperatorSelected) {
-      return;
-    } else if (buttonContent === "." && checkDecimalInOperand(String(operand2)) && firstOperatorSelected) {
-      return;
-    }
-    displayDiv.textContent += buttonContent;
+    processDigitInput(buttonContent);
+  });
+});
 
-    if (!firstOperatorSelected) {
-      operand1 += buttonContent;
-    } else if (firstOperatorSelected) {
-      operand2 += buttonContent;
+document.addEventListener("keydown", (event) => {
+  if (displayDiv.textContent === divideByZeroErrorMessage) {
+    return;
+  }
+
+  let validDigits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "."];
+  if (validDigits.includes(event.key)) {
+    processDigitInput(event.key);
+  }
+});
+
+function processOperatorInput(buttonContent) {
+  // need separate case for '=' since operator variable would be incorrectly overridden
+  if (buttonContent === "=" || buttonContent === "Enter") {
+    if (!(operand1 && operand2 && operator)) {
+      return;
     }
-  })
-})
+    operand1 = operate(operand1, operand2, operator);
+    displayDiv.textContent = operand1;
+    if (operand1 === divideByZeroErrorMessage) {
+      operand1 = "";
+    }
+    operand2 = "";
+    operator = "";
+    firstOperatorSelected = false;
+    resultOfEarlierOperation = true;
+    return;
+  }
+  else {
+    if ((operand1 || operand1 === 0) && (operand2 || operand2 === 0) && operator) {
+      operand1 = operate(operand1, operand2, operator);
+      displayDiv.textContent = operand1;
+      if (operand1 === divideByZeroErrorMessage) {
+        operand1 = "";
+      }
+      operand2 = "";
+      resultOfEarlierOperation = true;
+    } else if (operator && !operand2) {
+      if (operator === buttonContent) {
+        return;
+      } else {
+        firstOperatorSelected = true;
+        operator = buttonContent;
+        // remove previous operator and replace with newly selected one
+        let originalString = displayDiv.textContent;
+        let modifiedArrayOfOriginalString = [];
+        modifiedArrayOfOriginalString.push(originalString.split(" ")[0])
+        modifiedArrayOfOriginalString.push(operator);
+        displayDiv.textContent = modifiedArrayOfOriginalString.join(" ") + " "
+        return;
+      }
+    }
+
+    firstOperatorSelected = true;
+    operator = buttonContent;
+  }
+
+  displayDiv.textContent += " " + operator + " ";
+}
 
 operatorButtons.forEach((operatorButton) => {
   operatorButton.addEventListener("click", (event) => {
@@ -132,52 +206,19 @@ operatorButtons.forEach((operatorButton) => {
     resultOfEarlierOperation = false;
 
     let buttonContent = event.target.textContent;
-    // need separate case for '=' since operator variable would be incorrectly overridden
-    if (buttonContent === "=") {
-      if (!(operand1 && operand2 && operator)) {
-        return;
-      }
-      operand1 = operate(operand1, operand2, operator);
-      displayDiv.textContent = operand1;
-      if (operand1 === divideByZeroErrorMessage) {
-        operand1 = "";
-      }
-      operand2 = "";
-      operator = "";
-      firstOperatorSelected = false;
-      resultOfEarlierOperation = true;
-      return;
-    }
-    else {
-      if ((operand1 || operand1 === 0) && (operand2 || operand2 === 0) && operator) {
-        operand1 = operate(operand1, operand2, operator);
-        displayDiv.textContent = operand1;
-        if (operand1 === divideByZeroErrorMessage) {
-          operand1 = "";
-        }
-        operand2 = "";
-        resultOfEarlierOperation = true;
-      } else if (operator && !operand2) {
-        if (operator === buttonContent) {
-          return;
-        } else {
-          firstOperatorSelected = true;
-          operator = buttonContent;
-          // remove previous operator and replace with newly selected one
-          let originalString = displayDiv.textContent;
-          let modifiedArrayOfOriginalString = [];
-          modifiedArrayOfOriginalString.push(originalString.split(" ")[0])
-          modifiedArrayOfOriginalString.push(operator);
-          displayDiv.textContent = modifiedArrayOfOriginalString.join(" ") + " "
-          return;
-        }
-      }
+    processOperatorInput(buttonContent);
+  });
+});
 
-      firstOperatorSelected = true;
-      operator = buttonContent;
-    }
+document.addEventListener("keydown", (event) => {
+  if (operand1 === "") {
+    return;
+  }
+  resultOfEarlierOperation = false;
 
-    displayDiv.textContent += " " + operator + " ";
-  })
-})
+  let validOperators = ["+", "-", "*", "/", "=", "Enter"];
+  if (validOperators.includes(event.key)) {
+    processOperatorInput(event.key);
+  }
+});
 
